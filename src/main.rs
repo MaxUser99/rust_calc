@@ -1,8 +1,6 @@
 use std::io;
 use std::io::Read;
 
-static ACTIONS: [char; 4] = ['+', '-', '*', '/'];
-
 #[derive(Debug)]
 enum ActionTypes {
     ADD,
@@ -10,6 +8,10 @@ enum ActionTypes {
     MULTIPLY,
     DIVIDE,
     NONE,
+}
+
+fn cls() {
+    print!("{}[2J", 27 as char);
 }
 
 fn u8_to_action_type(input : &u8) -> ActionTypes {
@@ -22,18 +24,88 @@ fn u8_to_action_type(input : &u8) -> ActionTypes {
     }
 }
 
-fn handle_input() -> ActionTypes {
+fn handle_action_input() -> ActionTypes {
     let mut buffer = [0; 1];
+
     io::stdin()
         .read_exact(&mut buffer)
         .expect("Input error");
-    buffer
-        .first()
-        .map(|val| u8_to_action_type(val))
-        .unwrap()
+    u8_to_action_type(buffer.first().unwrap())
+}
+
+fn handle_var_input() -> [f64; 2] {
+    let mut input = String::new();
+    const NUM_COUNT: usize = 2;
+    let mut res : [f64; NUM_COUNT] = [0.; NUM_COUNT];
+    let mut i = 0;
+    loop {
+        if i == NUM_COUNT {
+            break;
+        }
+        io::stdin()
+            .read_line(&mut input)
+            .expect("input error");
+        match input.trim().parse::<f64>() {
+            Ok(val) => {
+                res[i] = val;
+                i += 1;
+            },
+            Err(_) => println!("not expected input")
+        }
+        input = String::new();
+    }
+    res
+}
+
+fn get_result(vars : &[f64; 2], action: &ActionTypes) -> Result<f64, String> {
+    match action {
+        ActionTypes::ADD => Ok(vars[0] + vars[1]),
+        ActionTypes::SUBTRACT => Ok(vars[0] - vars[1]),
+        ActionTypes::MULTIPLY => Ok(vars[0] * vars[1]),
+        ActionTypes::DIVIDE => {
+            if vars[1] == 0. {
+                Err(String::from("divider is equal to zero"))
+            } else {
+                Ok(vars[0] / vars[1])
+            }
+        },
+        ActionTypes::NONE => Err(String::from("unknown action"))
+    }
+}
+
+fn main_loop() {
+    cls();
+    println!("Enter numbers");
+    let nums = handle_var_input();
+    println!("Enter action sign");
+    let action = handle_action_input();
+    let res = get_result(&nums, &action);
+    match res {
+        Ok(result) => println!("Your result: {}", result),
+        Err(error) => println!("error: {}", error)
+    }
+    io::stdin().read_line(&mut String::new()).expect("qwer");
+    io::stdin().read_line(&mut String::new()).expect("qwer");
+}
+
+fn main_menu() {
+    const BUFFER_SIZE: usize = 1;
+    let mut input_buffer :[u8; BUFFER_SIZE];
+    loop {
+        println!("Press Enter to solve example");
+        println!("Press q to exit");
+        input_buffer = [0; BUFFER_SIZE];
+        io::stdin()
+            .read_exact(&mut input_buffer)
+            .expect("cant read string");
+        match input_buffer[0] as char {
+            'Q' => return,
+            'q' => return,
+            _ => main_loop()
+        }
+    }
 }
 
 fn main() {
-    let action_type = handle_input();
-    println!("action type: {:?}", action_type);
+    main_menu();
 }
