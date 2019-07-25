@@ -1,6 +1,9 @@
 use std::io;
 use std::io::Read;
 
+const NUM_COUNT: usize = 2;
+const BUFFER_SIZE: usize = 1;
+
 #[derive(Debug)]
 enum ActionTypes {
     ADD,
@@ -10,12 +13,13 @@ enum ActionTypes {
     NONE,
 }
 
+// console clear
 fn cls() {
     print!("{}[2J", 27 as char);
 }
 
 fn u8_to_action_type(input : &u8) -> ActionTypes {
-    match (*input) as char {
+    match char::from(*input) {
         '+' => ActionTypes::ADD,
         '-' => ActionTypes::SUBTRACT,
         '*' => ActionTypes::MULTIPLY,
@@ -25,7 +29,7 @@ fn u8_to_action_type(input : &u8) -> ActionTypes {
 }
 
 fn handle_action_input() -> ActionTypes {
-    let mut buffer = [0; 1];
+    let mut buffer = [0; BUFFER_SIZE];
 
     io::stdin()
         .read_exact(&mut buffer)
@@ -33,9 +37,8 @@ fn handle_action_input() -> ActionTypes {
     u8_to_action_type(buffer.first().unwrap())
 }
 
-fn handle_var_input() -> [f64; 2] {
+fn handle_var_input() -> [f64; NUM_COUNT] {
     let mut input = String::new();
-    const NUM_COUNT: usize = 2;
     let mut res : [f64; NUM_COUNT] = [0.; NUM_COUNT];
     let mut i = 0;
     loop {
@@ -57,7 +60,7 @@ fn handle_var_input() -> [f64; 2] {
     res
 }
 
-fn get_result(vars : &[f64; 2], action: &ActionTypes) -> Result<f64, String> {
+fn get_result(vars : &[f64; NUM_COUNT], action: &ActionTypes) -> Result<f64, String> {
     match action {
         ActionTypes::ADD => Ok(vars[0] + vars[1]),
         ActionTypes::SUBTRACT => Ok(vars[0] - vars[1]),
@@ -89,7 +92,6 @@ fn main_loop() {
 }
 
 fn main_menu() {
-    const BUFFER_SIZE: usize = 1;
     let mut input_buffer :[u8; BUFFER_SIZE];
     loop {
         println!("Press Enter to solve example");
@@ -99,8 +101,7 @@ fn main_menu() {
             .read_exact(&mut input_buffer)
             .expect("cant read string");
         match input_buffer[0] as char {
-            'Q' => return,
-            'q' => return,
+            'Q' | 'q' => return,
             _ => main_loop()
         }
     }
